@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppMode, ClockSettings } from './types';
+import { AppMode, ClockSettings, Language } from './types';
 import { Header } from './components/Header';
 import { ExploreMode } from './components/ExploreMode';
 import { SetClockGame } from './components/SetClockGame';
@@ -11,6 +11,11 @@ import { sounds } from './utils/soundEffects';
 
 export default function App() {
   const [currentMode, setCurrentMode] = useState<AppMode>('explore');
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('clock_lang');
+    return (saved as Language) || 'en';
+  });
+
   const [starsCount, setStarsCount] = useState<number>(() => {
     const saved = localStorage.getItem('clock_stars');
     return saved ? parseInt(saved, 10) : 0;
@@ -69,8 +74,24 @@ export default function App() {
     setSettings((prev) => ({ ...prev, soundEnabled: newSoundState }));
   };
 
+  const handleToggleLang = () => {
+    const newLang: Language = lang === 'en' ? 'ar' : 'en';
+    setLang(newLang);
+    localStorage.setItem('clock_lang', newLang);
+    if (newLang === 'en') {
+      sounds.speakEnglish('Language switched to English.');
+    } else {
+      sounds.speakArabic('تَمَّ التَّحْوِيلُ إِلَى اللُّغَةِ الْعَرَبِيَّةِ.');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-['Tajawal',sans-serif]">
+    <div
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      className={`min-h-screen bg-amber-50/40 text-slate-800 flex flex-col ${
+        lang === 'ar' ? "font-['Baloo_Bhaijaan_2','Tajawal',sans-serif]" : "font-sans"
+      } text-base`}
+    >
       {/* Top Header */}
       <Header
         currentMode={currentMode}
@@ -80,6 +101,8 @@ export default function App() {
         onToggleSound={handleToggleSound}
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenCertificate={() => setIsCertOpen(true)}
+        lang={lang}
+        onToggleLang={handleToggleLang}
       />
 
       {/* Main Content Area */}
@@ -95,37 +118,46 @@ export default function App() {
             }}
             settings={settings}
             onUpdateSettings={handleUpdateSettings}
+            lang={lang}
           />
         )}
 
         {currentMode === 'set-clock' && (
           <SetClockGame
             onEarnStar={handleEarnStar}
+            lang={lang}
           />
         )}
 
         {currentMode === 'quiz' && (
           <QuizMode
             onEarnStar={handleEarnStar}
+            lang={lang}
           />
         )}
 
         {currentMode === 'routine' && (
           <DailyRoutineMode
             onEarnStar={handleEarnStar}
+            lang={lang}
           />
         )}
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-white border-t border-slate-200/80 py-4 px-6 text-center text-xs text-slate-600 font-bold">
-        <p>ساعتي التفاعلية - التعلم الممتع - سميرة عبد الصدوق -جميع الحقوق محفوظة</p>
+      <footer className="w-full bg-white border-t border-slate-200/80 py-4 px-6 text-center text-sm md:text-base text-slate-700 font-bold shadow-xs">
+        <p>
+          {lang === 'en'
+            ? 'My Interactive Clock • Fun Learning for Kids • All Rights Reserved'
+            : 'سَاعَتِي التَّفَاعُلِيَّةُ - التَّعَلُّمُ الْمُمْتِعُ - سَمِيرَة عَبْدُ الصَّدُوقِ - جَمِيعُ الْحُقُوقِ مَحْفُوظَةٌ'}
+        </p>
       </footer>
 
       {/* Illustrated Guide Modal */}
       <LearnGuideModal
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
+        lang={lang}
       />
 
       {/* Certificate Modal */}
@@ -133,6 +165,7 @@ export default function App() {
         isOpen={isCertOpen}
         onClose={() => setIsCertOpen(false)}
         starsCount={starsCount}
+        lang={lang}
       />
     </div>
   );

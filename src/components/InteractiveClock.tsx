@@ -13,6 +13,7 @@ interface InteractiveClockProps {
   showHandLabels?: boolean;
   size?: number;
   highlightTarget?: { hours: number; minutes: number } | null;
+  lang?: 'en' | 'ar';
 }
 
 export const InteractiveClock: React.FC<InteractiveClockProps> = ({
@@ -26,6 +27,7 @@ export const InteractiveClock: React.FC<InteractiveClockProps> = ({
   showHandLabels = true,
   size = 360,
   highlightTarget = null,
+  lang = 'en',
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [draggingHand, setDraggingHand] = useState<'minute' | 'hour' | null>(null);
@@ -263,21 +265,21 @@ export const InteractiveClock: React.FC<InteractiveClockProps> = ({
                 <circle
                   cx={nx}
                   cy={ny}
-                  r="16"
+                  r="19"
                   fill="#FEE2E2"
                   stroke="#DC2626"
-                  strokeWidth="1.5"
+                  strokeWidth="2"
                   className="animate-pulse"
                 />
               )}
               <text
                 x={nx}
-                y={ny + 6}
+                y={ny + 8}
                 textAnchor="middle"
                 className={`font-black select-none ${
-                  isCurrentHour ? 'fill-red-700 text-[22px]' : 'fill-slate-800 text-[20px]'
+                  isCurrentHour ? 'fill-red-700 text-[26px]' : 'fill-slate-900 text-[24px]'
                 }`}
-                style={{ fontFamily: 'Fredoka, Tajawal, sans-serif' }}
+                style={{ fontFamily: 'Fredoka, Baloo Bhaijaan 2, Tajawal, sans-serif' }}
               >
                 {num}
               </text>
@@ -292,7 +294,7 @@ export const InteractiveClock: React.FC<InteractiveClockProps> = ({
             const minStr = minVal.toString().padStart(2, '0');
             const angle = (num / 12) * 360;
             const rad = ((angle - 90) * Math.PI) / 180;
-            const ringRadius = radius + 8;
+            const ringRadius = radius + 9;
             const mx = center + ringRadius * Math.cos(rad);
             const my = center + ringRadius * Math.sin(rad);
 
@@ -310,21 +312,21 @@ export const InteractiveClock: React.FC<InteractiveClockProps> = ({
                 }}
               >
                 <rect
-                  x={mx - 13}
-                  y={my - 8}
-                  width="26"
-                  height="16"
-                  rx="8"
+                  x={mx - 16}
+                  y={my - 10}
+                  width="32"
+                  height="20"
+                  rx="10"
                   fill={isCurrentMinStep ? '#2563EB' : '#EFF6FF'}
-                  stroke="#3B82F6"
-                  strokeWidth="1"
+                  stroke={isCurrentMinStep ? '#1D4ED8' : '#3B82F6'}
+                  strokeWidth="1.5"
                 />
                 <text
                   x={mx}
-                  y={my + 4}
+                  y={my + 4.5}
                   textAnchor="middle"
-                  className={`text-[10px] font-bold select-none ${
-                    isCurrentMinStep ? 'fill-white font-extrabold' : 'fill-blue-700 font-bold'
+                  className={`text-[12px] font-black select-none ${
+                    isCurrentMinStep ? 'fill-white font-black' : 'fill-blue-800 font-black'
                   }`}
                   style={{ fontFamily: 'Fredoka, monospace' }}
                 >
@@ -484,14 +486,14 @@ export const InteractiveClock: React.FC<InteractiveClockProps> = ({
 
       {/* Hand Color Indicator Badges */}
       {showHandLabels && (
-        <div className="flex items-center gap-3 mt-2 text-xs font-bold">
-          <div className="flex items-center gap-1.5 bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-200">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-            <span>عقرب الساعات (القصير - أحمر)</span>
+        <div className="flex items-center gap-3 mt-3 text-sm md:text-base font-black flex-wrap justify-center">
+          <div className="flex items-center gap-2 bg-red-50 text-red-800 px-3.5 py-1.5 rounded-full border-2 border-red-200 shadow-2xs">
+            <span className="w-3.5 h-3.5 rounded-full bg-red-600 shadow-xs"></span>
+            <span>{lang === 'en' ? 'Hour Hand (Short - Red)' : 'عَقْرَبُ السَّاعَاتِ (الْقَصِيرُ - أَحْمَرُ)'}</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-200">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-            <span>عقرب الدقائق (الطويل - أزرق)</span>
+          <div className="flex items-center gap-2 bg-blue-50 text-blue-800 px-3.5 py-1.5 rounded-full border-2 border-blue-200 shadow-2xs">
+            <span className="w-3.5 h-3.5 rounded-full bg-blue-600 shadow-xs"></span>
+            <span>{lang === 'en' ? 'Minute Hand (Long - Blue)' : 'عَقْرَبُ الدَّقَائِقِ (الطَّوِيلُ - أَزْرَقُ)'}</span>
           </div>
         </div>
       )}

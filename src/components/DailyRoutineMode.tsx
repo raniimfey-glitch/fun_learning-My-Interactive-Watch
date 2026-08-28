@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import { InteractiveClock } from './InteractiveClock';
 import { sounds } from '../utils/soundEffects';
-import { formatArabicSpokenTime, formatDigitalTime } from '../utils/timeFormatters';
-import { DailyRoutineItem } from '../types';
+import { formatArabicSpokenTime, formatEnglishSpokenTime, formatDigitalTime } from '../utils/timeFormatters';
+import { DailyRoutineItem, Language } from '../types';
 import { Sun, School, Coffee, BookOpen, Home, Moon, Utensils, Award, Volume2 } from 'lucide-react';
 
 interface DailyRoutineModeProps {
   onEarnStar: () => void;
+  lang?: Language;
 }
 
-const ROUTINE_ITEMS: DailyRoutineItem[] = [
+const ROUTINE_ITEMS_AR: DailyRoutineItem[] = [
   {
     id: 'wake',
-    title: 'الاستيقاظ والنشاط 🌅',
-    description: 'أَسْتَيْقِظُ مُبَكِّراً بِنَشَاطٍ، وَأَغْسِلُ وَجْهِي وَأَسْنَانِي، وَأُرَتِّبُ سَرِيرِي.',
-    spokenDescription: 'أَسْتَيْقِظُ مُبَكِّراً بِنَشَاطٍ، وَأَغْسِلُ وَجْهِي وَأَسْنَانِي، وَأُرَتِّبُ سَرِيرِي.',
+    title: 'الِاسْتِيقَاظُ وَالنَّشَاطُ',
+    description: 'أَسْتَيْقِظُ مُبَكِّرًا بِنَشَاطٍ، وَأَغْسِلُ وَجْهِي وَأَسْنَانِي، وَأُرَتِّبُ سَرِيرِي.',
+    spokenDescription: 'أَسْتَيْقِظُ مُبَكِّرًا بِنَشَاطٍ، وَأَغْسِلُ وَجْهِي وَأَسْنَانِي، وَأُرَتِّبُ سَرِيرِي.',
     defaultHours: 6,
     defaultMinutes: 30,
     period: 'morning',
@@ -22,9 +23,9 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'breakfast',
-    title: 'وجبة الفطور 🥛',
-    description: 'أَتَنَاوَلُ فُطُورِي الصِّحِّيَّ مَعَ الْحَلِيبِ لِأَكُونَ قَوِيّاً وَذَكِيّاً فِي الْمَدْرَسَةِ.',
-    spokenDescription: 'أَتَنَاوَلُ فُطُورِي الصِّحِّيَّ مَعَ الْحَلِيبِ لِأَكُونَ قَوِيّاً وَذَكِيّاً فِي الْمَدْرَسَةِ.',
+    title: 'وَجْبَةُ الْفُطُورِ',
+    description: 'أَتَنَاوَلُ فُطُورِي الصِّحِّيَّ مَعَ الْحَلِيبِ لِأَكُونَ قَوِيًّا وَذَكِيًّا فِي الْمَدْرَسَةِ.',
+    spokenDescription: 'أَتَنَاوَلُ فُطُورِي الصِّحِّيَّ مَعَ الْحَلِيبِ لِأَكُونَ قَوِيًّا وَذَكِيًّا فِي الْمَدْرَسَةِ.',
     defaultHours: 7,
     defaultMinutes: 15,
     period: 'morning',
@@ -32,7 +33,7 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'school-start',
-    title: 'بداية الدروس الصباحية 🏫',
+    title: 'بِدَايَةُ الدُّرُوسِ الصَّبَاحِيَّةِ',
     description: 'أَصِلُ إِلَى الْمَدْرَسَةِ بِنَشَاطٍ، وَأَقِفُ فِي الطَّابُورِ ثُمَّ أَدْخُلُ الْقِسْمَ.',
     spokenDescription: 'أَصِلُ إِلَى الْمَدْرَسَةِ بِنَشَاطٍ، وَأَقِفُ فِي الطَّابُورِ ثُمَّ أَدْخُلُ الْقِسْمَ.',
     defaultHours: 8,
@@ -42,9 +43,9 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'recess',
-    title: 'استراحة اللمجة واللعب 🥪',
-    description: 'أَتَنَاوَلُ لُمْجَتِي اللَّذِيذَةَ وَأَلْعَبُ مَعَ زُمَلائِي فِي سَاحَةِ الْمَدْرَسَةِ.',
-    spokenDescription: 'أَتَنَاوَلُ لُمْجَتِي اللَّذِيذَةَ وَأَلْعَبُ مَعَ زُمَلائِي فِي سَاحَةِ الْمَدْرَسَةِ.',
+    title: 'اسْتِرَاحَةُ اللُّمْجَةِ وَاللَّعِبِ',
+    description: 'أَتَنَاوَلُ لُمْجَتِي اللَّذِيذَةَ وَأَلْعَبُ مَعَ زُمَلَائِي فِي سَاحَةِ الْمَدْرَسَةِ.',
+    spokenDescription: 'أَتَنَاوَلُ لُمْجَتِي اللَّذِيذَةَ وَأَلْعَبُ مَعَ زُمَلَائِي فِي سَاحَةِ الْمَدْرَسَةِ.',
     defaultHours: 10,
     defaultMinutes: 15,
     period: 'morning',
@@ -52,7 +53,7 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'lunch',
-    title: 'وجبة الغداء 🍽️',
+    title: 'وَجْبَةُ الْغَدَاءِ',
     description: 'أَتَنَاوَلُ طَعَامَ الْغَدَاءِ اللَّذِيذَ مَعَ الْعَائِلَةِ فِي مُنْتَصَفِ النَّهَارِ.',
     spokenDescription: 'أَتَنَاوَلُ طَعَامَ الْغَدَاءِ اللَّذِيذَ مَعَ الْعَائِلَةِ فِي مُنْتَصَفِ النَّهَارِ.',
     defaultHours: 12,
@@ -62,9 +63,9 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'school-end',
-    title: 'العودة إلى المنزل 🎒',
-    description: 'أَجْمَعُ أَدَوَاتِي وَأَعُودُ إِلَى الْبَيْتِ سَعِيداً بِمَا تَعَلَّمْتُهُ الْيَوْمَ.',
-    spokenDescription: 'أَجْمَعُ أَدَوَاتِي وَأَعُودُ إِلَى الْبَيْتِ سَعِيداً بِمَا تَعَلَّمْتُهُ الْيَوْمَ.',
+    title: 'الْعَوْدَةُ إِلَى الْمَنْزِلِ',
+    description: 'أَجْمَعُ أَدَوَاتِي وَأَعُودُ إِلَى الْبَيْتِ سَعِيدًا بِمَا تَعَلَّمْتُهُ الْيَوْمَ.',
+    spokenDescription: 'أَجْمَعُ أَدَوَاتِي وَأَعُودُ إِلَى الْبَيْتِ سَعِيدًا بِمَا تَعَلَّمْتُهُ الْيَوْمَ.',
     defaultHours: 15,
     defaultMinutes: 30,
     period: 'afternoon',
@@ -72,7 +73,7 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'homework',
-    title: 'حل الواجبات والمطالعة 📚',
+    title: 'حَلُّ الْوَاجِبَاتِ وَالْمُطَالَعَةُ',
     description: 'أُرَاجِعُ دُرُوسِي وَأَحُلُّ وَاجِبَاتِي الْمَدْرَسِيَّةَ ثُمَّ أَقْرَأُ قِصَّةً شَيِّقَةً.',
     spokenDescription: 'أُرَاجِعُ دُرُوسِي وَأَحُلُّ وَاجِبَاتِي الْمَدْرَسِيَّةَ ثُمَّ أَقْرَأُ قِصَّةً شَيِّقَةً.',
     defaultHours: 17,
@@ -82,7 +83,7 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'dinner',
-    title: 'العشاء مع العائلة 🥗',
+    title: 'الْعَشَاءُ مَعَ الْعَائِلَةِ',
     description: 'أَجْلِسُ مَعَ أُسْرَتِي لِتَنَاوُلِ الْعَشَاءِ وَنَتَبَادَلُ الْحَدِيثَ الْمُمْتِعَ.',
     spokenDescription: 'أَجْلِسُ مَعَ أُسْرَتِي لِتَنَاوُلِ الْعَشَاءِ وَنَتَبَادَلُ الْحَدِيثَ الْمُمْتِعَ.',
     defaultHours: 19,
@@ -92,9 +93,9 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
   {
     id: 'sleep',
-    title: 'النوم المبكر 🌙',
-    description: 'أُنَظِّفُ أَسْنَانِي وَأَنَامُ مُبَكِّراً لِأَسْتَيْقِظَ نَشِيطاً فِي الصَّبَاحِ الْبَاكِرِ.',
-    spokenDescription: 'أُنَظِّفُ أَسْنَانِي وَأَنَامُ مُبَكِّراً لِأَسْتَيْقِظَ نَشِيطاً فِي الصَّبَاحِ الْبَاكِرِ.',
+    title: 'النَّوْمُ الْمُبَكِّرُ',
+    description: 'أُنَظِّفُ أَسْنَانِي وَأَنَامُ مُبَكِّرًا لِأَسْتَيْقِظَ نَشِيطًا فِي الصَّبَاحِ الْبَاكِرِ.',
+    spokenDescription: 'أُنَظِّفُ أَسْنَانِي وَأَنَامُ مُبَكِّرًا لِأَسْتَيْقِظَ نَشِيطًا فِي الصَّبَاحِ الْبَاكِرِ.',
     defaultHours: 20,
     defaultMinutes: 45,
     period: 'night',
@@ -102,14 +103,112 @@ const ROUTINE_ITEMS: DailyRoutineItem[] = [
   },
 ];
 
-export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar }) => {
+const ROUTINE_ITEMS_EN: DailyRoutineItem[] = [
+  {
+    id: 'wake',
+    title: 'Wake Up & Shine',
+    description: 'I wake up early full of energy, brush my teeth, and make my bed.',
+    spokenDescription: 'I wake up early full of energy, brush my teeth, and make my bed.',
+    defaultHours: 6,
+    defaultMinutes: 30,
+    period: 'morning',
+    iconName: 'Sun',
+  },
+  {
+    id: 'breakfast',
+    title: 'Healthy Breakfast',
+    description: 'I eat a nutritious breakfast with milk to stay sharp and energized for school.',
+    spokenDescription: 'I eat a nutritious breakfast with milk to stay sharp and energized for school.',
+    defaultHours: 7,
+    defaultMinutes: 15,
+    period: 'morning',
+    iconName: 'Coffee',
+  },
+  {
+    id: 'school-start',
+    title: 'School Lessons Begin',
+    description: 'I arrive at school cheerfully, greet my teacher, and get ready to learn.',
+    spokenDescription: 'I arrive at school cheerfully, greet my teacher, and get ready to learn.',
+    defaultHours: 8,
+    defaultMinutes: 0,
+    period: 'morning',
+    iconName: 'School',
+  },
+  {
+    id: 'recess',
+    title: 'Snack & Recess',
+    description: 'I eat my delicious snack and enjoy playing fun games with classmates in the yard.',
+    spokenDescription: 'I eat my delicious snack and enjoy playing fun games with classmates in the yard.',
+    defaultHours: 10,
+    defaultMinutes: 15,
+    period: 'morning',
+    iconName: 'Coffee',
+  },
+  {
+    id: 'lunch',
+    title: 'Lunch Break',
+    description: 'I enjoy a wholesome, yummy lunch with family and friends at midday.',
+    spokenDescription: 'I enjoy a wholesome, yummy lunch with family and friends at midday.',
+    defaultHours: 12,
+    defaultMinutes: 30,
+    period: 'afternoon',
+    iconName: 'Utensils',
+  },
+  {
+    id: 'school-end',
+    title: 'Heading Home',
+    description: 'I pack up my bag and head home happily with everything I learned today.',
+    spokenDescription: 'I pack up my bag and head home happily with everything I learned today.',
+    defaultHours: 15,
+    defaultMinutes: 30,
+    period: 'afternoon',
+    iconName: 'Home',
+  },
+  {
+    id: 'homework',
+    title: 'Homework & Reading',
+    description: 'I review my daily lessons, complete my homework, and read an exciting story.',
+    spokenDescription: 'I review my daily lessons, complete my homework, and read an exciting story.',
+    defaultHours: 17,
+    defaultMinutes: 0,
+    period: 'evening',
+    iconName: 'BookOpen',
+  },
+  {
+    id: 'dinner',
+    title: 'Family Dinner',
+    description: 'I gather around the table with my family for dinner and cheerful conversations.',
+    spokenDescription: 'I gather around the table with my family for dinner and cheerful conversations.',
+    defaultHours: 19,
+    defaultMinutes: 30,
+    period: 'evening',
+    iconName: 'Utensils',
+  },
+  {
+    id: 'sleep',
+    title: 'Early Bedtime',
+    description: 'I brush my teeth, put on cozy pajamas, and go to sleep early to wake up happy.',
+    spokenDescription: 'I brush my teeth, put on cozy pajamas, and go to sleep early to wake up happy.',
+    defaultHours: 20,
+    defaultMinutes: 45,
+    period: 'night',
+    iconName: 'Moon',
+  },
+];
+
+export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar, lang = 'en' }) => {
   const [selectedId, setSelectedId] = useState<string>('school-start');
   const [completedItems, setCompletedItems] = useState<string[]>([]);
 
-  const selectedItem = ROUTINE_ITEMS.find((r) => r.id === selectedId) || ROUTINE_ITEMS[0];
+  const routineItems = lang === 'en' ? ROUTINE_ITEMS_EN : ROUTINE_ITEMS_AR;
+  const selectedItem = routineItems.find((r) => r.id === selectedId) || routineItems[0];
   const digital = formatDigitalTime(selectedItem.defaultHours, selectedItem.defaultMinutes);
-  const spoken = formatArabicSpokenTime(selectedItem.defaultHours, selectedItem.defaultMinutes, true, false);
-  const phonetic = formatArabicSpokenTime(selectedItem.defaultHours, selectedItem.defaultMinutes, true, true);
+  
+  const spoken = lang === 'en'
+    ? formatEnglishSpokenTime(selectedItem.defaultHours, selectedItem.defaultMinutes, true)
+    : formatArabicSpokenTime(selectedItem.defaultHours, selectedItem.defaultMinutes, true, false);
+
+  const phoneticArabic = formatArabicSpokenTime(selectedItem.defaultHours, selectedItem.defaultMinutes, true, true);
 
   const handleSelect = (item: DailyRoutineItem) => {
     sounds.playClick();
@@ -118,14 +217,24 @@ export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar }
       setCompletedItems((prev) => [...prev, item.id]);
       onEarnStar();
     }
-    // Speak time and activity title
-    const speakText = `وَقْتُ ${item.title}. السَّاعَةُ ${phonetic}. ${item.description}`;
-    sounds.speakArabic(speakText);
+    // Speak time and activity title in slow, friendly pace
+    if (lang === 'en') {
+      const speakText = `Time for ${item.title}. ${spoken}. ${item.description}`;
+      sounds.speakEnglish(speakText);
+    } else {
+      const speakText = `وَقْتُ ${item.title}. السَّاعَةُ ${phoneticArabic}. ${item.description}`;
+      sounds.speakArabic(speakText);
+    }
   };
 
   const handleSpeakCurrent = () => {
-    const speakText = `وَقْتُ ${selectedItem.title}. السَّاعَةُ ${phonetic}. ${selectedItem.description}`;
-    sounds.speakArabic(speakText);
+    if (lang === 'en') {
+      const speakText = `Time for ${selectedItem.title}. ${spoken}. ${selectedItem.description}`;
+      sounds.speakEnglish(speakText);
+    } else {
+      const speakText = `وَقْتُ ${selectedItem.title}. السَّاعَةُ ${phoneticArabic}. ${selectedItem.description}`;
+      sounds.speakArabic(speakText);
+    }
   };
 
   const renderIcon = (iconName: string) => {
@@ -152,18 +261,20 @@ export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar }
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start">
       {/* Left Column: Clock & Active Event Detail */}
-      <div className="w-full lg:w-[460px] bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80 flex flex-col items-center">
-        <div className="w-full text-center pb-2 border-b border-slate-100 mb-2 flex items-center justify-between">
-          <div className="text-right">
-            <span className="text-xs font-bold text-amber-700">الساعة تشير إلى وقت:</span>
-            <h3 className="text-lg font-black text-slate-900 mt-0.5">{selectedItem.title}</h3>
+      <div className="w-full lg:w-[460px] bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200/80 flex flex-col items-center">
+        <div className="w-full text-center pb-3 border-b border-slate-100 mb-3 flex items-center justify-between">
+          <div className={lang === 'en' ? 'text-left' : 'text-right'}>
+            <span className="text-sm font-black text-amber-800">
+              {lang === 'en' ? 'The clock shows the time for:' : 'السَّاعَةُ تُشِيرُ إِلَى وَقْتِ:'}
+            </span>
+            <h3 className="text-xl md:text-2xl font-black text-slate-950 mt-0.5">{selectedItem.title}</h3>
           </div>
           <button
             onClick={handleSpeakCurrent}
-            className="p-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition cursor-pointer active:scale-95"
-            title="استمع للوصف صوتياً"
+            className="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-200 transition cursor-pointer active:scale-95 shrink-0"
+            title={lang === 'en' ? 'Listen to spoken description' : 'اِسْتَمِعْ لِلْوَصْفِ صَوْتِيًّا'}
           >
-            <Volume2 className="w-5 h-5" />
+            <Volume2 className="w-6 h-6 text-amber-600" />
           </button>
         </div>
 
@@ -174,22 +285,25 @@ export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar }
           showMinuteRing={true}
           showHandLabels={true}
           size={320}
+          lang={lang}
         />
 
         {/* Event Time Summary Card */}
-        <div className="w-full mt-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col gap-2">
+        <div className="w-full mt-4 p-5 rounded-3xl bg-amber-50/90 border-2 border-amber-300 flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900">الوقت:</span>
-            <span className="font-mono font-black text-base text-slate-900 bg-white px-3 py-1 rounded-xl border border-amber-200 shadow-xs">
-              {digital.time12} {digital.isPm ? 'مساءً' : 'صباحاً'}
+            <span className="text-sm font-black text-amber-950">
+              {lang === 'en' ? 'Scheduled Time:' : 'الْوَقْتُ الْمُحَدَّدُ:'}
+            </span>
+            <span className="font-mono font-black text-base md:text-lg text-slate-950 bg-white px-3.5 py-1.5 rounded-xl border border-amber-300 shadow-xs">
+              {digital.time12} {lang === 'en' ? digital.period12En : (digital.isPm ? 'مَسَاءً' : 'صَبَاحًا')}
             </span>
           </div>
 
-          <div className="text-sm font-black text-slate-800 leading-snug">
+          <div className="text-lg md:text-xl font-black text-slate-950 leading-relaxed font-['Baloo_Bhaijaan_2','Tajawal',sans-serif]">
             {spoken}
           </div>
 
-          <p className="text-xs text-slate-700 leading-relaxed pt-2 border-t border-amber-200/60 font-semibold">
+          <p className="text-base text-slate-800 leading-relaxed pt-3 border-t border-amber-200/80 font-bold">
             {selectedItem.description}
           </p>
         </div>
@@ -197,19 +311,23 @@ export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar }
 
       {/* Right Column: Timeline Cards of the Day */}
       <div className="w-full lg:flex-1 flex flex-col gap-4">
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/80 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500" />
-            <h3 className="font-black text-slate-900 text-base">جدول أنشطة يوم التلميذ:</h3>
+        <div className="bg-white rounded-3xl p-4 md:p-5 shadow-sm border border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <Award className="w-6 h-6 text-amber-500" />
+            <h3 className="font-black text-slate-950 text-lg">
+              {lang === 'en' ? "Daily Routine Schedule:" : "جَدْوَلُ أَنْشِطَةِ يَوْمِ التِّلْمِيذِ:"}
+            </h3>
           </div>
-          <span className="text-xs font-black text-amber-800 bg-amber-50 border border-amber-200 px-3.5 py-1.5 rounded-2xl">
-            استكشفت {completedItems.length} من {ROUTINE_ITEMS.length} أنشطة ⭐
+          <span className="text-sm font-black text-amber-900 bg-amber-50 border-2 border-amber-200 px-4 py-1.5 rounded-2xl">
+            {lang === 'en'
+              ? `Explored ${completedItems.length} of ${routineItems.length} activities`
+              : `اِسْتَكْشَفْتَ ${completedItems.length} مِنْ ${routineItems.length} أَنْشِطَةٍ`}
           </span>
         </div>
 
         {/* List of Routine Items */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {ROUTINE_ITEMS.map((item) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {routineItems.map((item) => {
             const isSelected = item.id === selectedId;
             const isViewed = completedItems.includes(item.id);
             const itemDig = formatDigitalTime(item.defaultHours, item.defaultMinutes);
@@ -218,30 +336,32 @@ export const DailyRoutineMode: React.FC<DailyRoutineModeProps> = ({ onEarnStar }
               <button
                 key={item.id}
                 onClick={() => handleSelect(item)}
-                className={`p-4 rounded-2xl border-2 text-right transition-all flex flex-col gap-2 cursor-pointer active:scale-[0.99] ${
+                className={`p-4 md:p-5 rounded-2xl border-2 transition-all flex flex-col gap-2.5 cursor-pointer active:scale-[0.99] shadow-2xs ${
+                  lang === 'en' ? 'text-left' : 'text-right'
+                } ${
                   isSelected
-                    ? 'bg-amber-50/90 border-amber-500 shadow-md ring-2 ring-amber-200'
+                    ? 'bg-amber-50/95 border-amber-500 shadow-md ring-2 ring-amber-200'
                     : isViewed
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
-                    : 'bg-white hover:bg-slate-50 border-slate-200/70 text-slate-700'
+                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900'
+                    : 'bg-white hover:bg-slate-50 border-slate-200/70 text-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-xl bg-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2.5 rounded-xl bg-slate-100">
                       {renderIcon(item.iconName)}
                     </div>
-                    <span className="font-black text-sm md:text-base text-slate-900">
+                    <span className="font-black text-base md:text-lg text-slate-950">
                       {item.title}
                     </span>
                   </div>
 
-                  <span className="font-mono text-xs font-black px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800">
-                    {itemDig.time12}
+                  <span className="font-mono text-sm font-black px-3 py-1 rounded-xl bg-slate-100 text-slate-900 border border-slate-200">
+                    {itemDig.time12} {lang === 'en' ? itemDig.period12En : itemDig.period12}
                   </span>
                 </div>
 
-                <div className="text-xs text-slate-600 line-clamp-2 pr-1 font-medium leading-relaxed">
+                <div className="text-sm text-slate-700 line-clamp-2 pr-1 font-bold leading-relaxed">
                   {item.description}
                 </div>
               </button>

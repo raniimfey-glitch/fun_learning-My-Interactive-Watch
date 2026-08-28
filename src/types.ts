@@ -1,5 +1,7 @@
 export type AppMode = 'explore' | 'set-clock' | 'quiz' | 'routine';
 
+export type Language = 'en' | 'ar';
+
 export type PeriodOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
 export interface TimeState {

@@ -1,9 +1,11 @@
-// Web Audio API Sound Synthesizer & Arabic Text-to-Speech Engine for 2nd Grade
+// Web Audio API Sound Synthesizer & Bilingual (Arabic / English) Text-to-Speech Engine for Kids
+import { Language } from '../types';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
   public enabled: boolean = true;
   private cachedArabicVoice: SpeechSynthesisVoice | null = null;
+  private cachedEnglishVoice: SpeechSynthesisVoice | null = null;
   private voicesLoaded: boolean = false;
 
   constructor() {
@@ -20,23 +22,36 @@ class SoundEngine {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
         this.voicesLoaded = true;
-        // Prioritize natural sounding Arabic voices: Saudi (ar-SA), Egyptian (ar-EG), Emirati (ar-AE), or general Arabic (ar)
-        const preferredLocales = ['ar-SA', 'ar-EG', 'ar-AE', 'ar-QA', 'ar-DZ', 'ar-MA', 'ar'];
-        let selected: SpeechSynthesisVoice | null = null;
 
-        for (const loc of preferredLocales) {
+        // 1. Prioritize natural sounding Arabic voices
+        const preferredArLocales = ['ar-SA', 'ar-EG', 'ar-AE', 'ar-QA', 'ar-DZ', 'ar-MA', 'ar'];
+        let selectedAr: SpeechSynthesisVoice | null = null;
+        for (const loc of preferredArLocales) {
           const match = voices.find((v) => v.lang.toLowerCase().replace('_', '-').startsWith(loc.toLowerCase()));
           if (match) {
-            selected = match;
+            selectedAr = match;
             break;
           }
         }
-
-        if (!selected) {
-          selected = voices.find((v) => v.lang.toLowerCase().startsWith('ar')) || null;
+        if (!selectedAr) {
+          selectedAr = voices.find((v) => v.lang.toLowerCase().startsWith('ar')) || null;
         }
+        this.cachedArabicVoice = selectedAr;
 
-        this.cachedArabicVoice = selected;
+        // 2. Prioritize natural, friendly English voices (US, GB, child/female friendly)
+        const preferredEnLocales = ['en-US', 'en-GB', 'en-CA', 'en-AU', 'en'];
+        let selectedEn: SpeechSynthesisVoice | null = null;
+        for (const loc of preferredEnLocales) {
+          const match = voices.find((v) => v.lang.toLowerCase().replace('_', '-').startsWith(loc.toLowerCase()));
+          if (match) {
+            selectedEn = match;
+            break;
+          }
+        }
+        if (!selectedEn) {
+          selectedEn = voices.find((v) => v.lang.toLowerCase().startsWith('en')) || null;
+        }
+        this.cachedEnglishVoice = selectedEn;
       }
     } catch {
       // Ignore
@@ -193,8 +208,43 @@ class SoundEngine {
   }
 
   /**
+   * Slow, clear, child-friendly English Text-to-Speech
+   */
+  speakEnglish(text: string, onEnd?: () => void) {
+    if (!this.enabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      onEnd?.();
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      const cleanText = text.trim();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.80; // Slower, kid-friendly pace for clear listening and comprehension
+      utterance.pitch = 1.05; // Friendly, encouraging child tone
+
+      if (!this.cachedEnglishVoice) {
+        this.initVoices();
+      }
+
+      if (this.cachedEnglishVoice) {
+        utterance.voice = this.cachedEnglishVoice;
+      }
+
+      if (onEnd) {
+        utterance.onend = () => onEnd();
+        utterance.onerror = () => onEnd();
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      onEnd?.();
+    }
+  }
+
+  /**
    * High quality Arabic speech synthesizer for 2nd Grade kids.
-   * Ensures diacritics are respected, pace is clear and friendly.
    */
   speakArabic(text: string, onEnd?: () => void) {
     if (!this.enabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -204,13 +254,11 @@ class SoundEngine {
 
     try {
       window.speechSynthesis.cancel();
-
-      // Clean redundant spaces and ensure diacritics flow smoothly
       const cleanText = text.trim();
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'ar-SA'; // Standard clear Arabic locale
-      utterance.rate = 0.85;    // Calm, articulate pace for 2nd graders
-      utterance.pitch = 1.05;   // Warm, encouraging tone
+      utterance.lang = 'ar-SA';
+      utterance.rate = 0.85;
+      utterance.pitch = 1.05;
 
       if (!this.cachedArabicVoice) {
         this.initVoices();
@@ -231,24 +279,53 @@ class SoundEngine {
     }
   }
 
-  speakCheer(correct: boolean) {
-    if (correct) {
-      const cheers = [
-        'أَحْسَنْتَ يَا بَطَل! إِجَابَةٌ صَحِيحَةٌ وَمُمَيَّزَةٌ!',
-        'مُمْتَاز! عَمَلٌ رَائِعٌ جِدّاً!',
-        'بَارَكَ اللَّهُ فِيك! أَجَبْتَ بِشَكْلٍ صَحِيحٍ!',
-        'أَحْسَنْتِ يَا بَطَلَة! إِجَابَةٌ دَقِيقَةٌ!',
-      ];
-      const randomCheer = cheers[Math.floor(Math.random() * cheers.length)];
-      this.speakArabic(randomCheer);
+  speak(text: string, lang: Language = 'en', onEnd?: () => void) {
+    if (lang === 'en') {
+      this.speakEnglish(text, onEnd);
     } else {
-      const encouragements = [
-        'حَاوِلْ مَرَّةً أُخْرَى بِتَرْكِيزٍ! اِنْظُرْ إِلَى مَكَانِ عَقْرَبِ السَّاعَاتِ وَعَقْرَبِ الدَّقَائِقِ.',
-        'رَكِّزْ جَيِّداً يَا صَغِيرِي، ثُمَّ حَاوِلْ مَرَّةً أُخْرَى.',
-        'لَا بَأْسَ، تَأَكَّدْ مِنْ مَكَانِ عَقْرَبِ السَّاعَاتِ وَعَقْرَبِ الدَّقَائِقِ.',
-      ];
-      const randomEnc = encouragements[Math.floor(Math.random() * encouragements.length)];
-      this.speakArabic(randomEnc);
+      this.speakArabic(text, onEnd);
+    }
+  }
+
+  speakCheer(correct: boolean, lang: Language = 'en') {
+    if (lang === 'en') {
+      if (correct) {
+        const cheers = [
+          'Awesome job! That is completely correct!',
+          'Great work! You are a clock master!',
+          'Excellent! You got the right time!',
+          'Super star! That is spot on!',
+        ];
+        const randomCheer = cheers[Math.floor(Math.random() * cheers.length)];
+        this.speakEnglish(randomCheer);
+      } else {
+        const encouragements = [
+          'Good try! Look closely at the short hour hand and long minute hand.',
+          'Take another look, and try once more!',
+          'Almost there! Check the positions of the red and blue hands.',
+        ];
+        const randomEnc = encouragements[Math.floor(Math.random() * encouragements.length)];
+        this.speakEnglish(randomEnc);
+      }
+    } else {
+      if (correct) {
+        const cheers = [
+          'أَحْسَنْتَ يَا بَطَلُ! إِجَابَةٌ صَحِيحَةٌ وَمُمَيَّزَةٌ!',
+          'مُمْتَازٌ! عَمَلٌ رَائِعٌ جِدًّا!',
+          'بَارَكَ اللَّهُ فِيكَ! أَجَبْتَ بِشَكْلٍ صَحِيحٍ!',
+          'أَحْسَنْتِ يَا بَطَلَةُ! إِجَابَةٌ دَقِيقَةٌ وَمُتْقَنَةٌ!',
+        ];
+        const randomCheer = cheers[Math.floor(Math.random() * cheers.length)];
+        this.speakArabic(randomCheer);
+      } else {
+        const encouragements = [
+          'حَاوِلْ مَرَّةً أُخْرَى بِتَرْكِيزٍ! اُنْظُرْ إِلَى مَكَانِ عَقْرَبِ السَّاعَاتِ وَعَقْرَبِ الدَّقَائِقِ.',
+          'رَكِّزْ جَيِّدًا يَا صَغِيرِي، ثُمَّ حَاوِلْ مَرَّةً أُخْرَى.',
+          'لَا بَأْسَ، تَأَكَّدْ مِنْ مَوْقِعِ عَقْرَبِ السَّاعَاتِ وَعَقْرَبِ الدَّقَائِقِ.',
+        ];
+        const randomEnc = encouragements[Math.floor(Math.random() * encouragements.length)];
+        this.speakArabic(randomEnc);
+      }
     }
   }
 }

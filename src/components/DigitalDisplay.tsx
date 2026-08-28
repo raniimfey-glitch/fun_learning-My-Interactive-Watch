@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Volume2, Sun, Moon, Sunrise, Sunset, Plus, Minus, Sparkles } from 'lucide-react';
-import { formatArabicSpokenTime, formatDigitalTime, getPeriodOfDay } from '../utils/timeFormatters';
+import { formatSpokenTime, formatDigitalTime, getPeriodOfDay, formatArabicSpokenTime } from '../utils/timeFormatters';
 import { sounds } from '../utils/soundEffects';
+import { Language } from '../types';
 
 interface DigitalDisplayProps {
   hours: number;
   minutes: number;
   seconds?: number;
   onChangeTime: (hours: number, minutes: number) => void;
+  lang?: Language;
 }
 
 export const DigitalDisplay: React.FC<DigitalDisplayProps> = ({
@@ -15,18 +17,32 @@ export const DigitalDisplay: React.FC<DigitalDisplayProps> = ({
   minutes,
   seconds = 0,
   onChangeTime,
+  lang = 'en',
+}: {
+  hours: number;
+  minutes: number;
+  seconds?: number;
+  onChangeTime: (hours: number, minutes: number) => void;
+  lang?: Language;
 }) => {
+  const currentLang: Language = lang || 'en';
   const [isSpeaking, setIsSpeaking] = useState(false);
   const digital = formatDigitalTime(hours, minutes, seconds);
-  const periodInfo = getPeriodOfDay(hours);
-  const spokenPhrase = formatArabicSpokenTime(hours, minutes, true, false);
-  const phoneticPhrase = formatArabicSpokenTime(hours, minutes, true, true);
+  const periodInfo = getPeriodOfDay(hours, currentLang);
+  const spokenPhrase = formatSpokenTime(hours, minutes, currentLang, true, false);
+  const phoneticArabic = formatArabicSpokenTime(hours, minutes, true, true);
 
   const handleSpeak = () => {
     setIsSpeaking(true);
-    sounds.speakArabic(phoneticPhrase, () => {
-      setIsSpeaking(false);
-    });
+    if (currentLang === 'en') {
+      sounds.speakEnglish(spokenPhrase, () => {
+        setIsSpeaking(false);
+      });
+    } else {
+      sounds.speakArabic(phoneticArabic, () => {
+        setIsSpeaking(false);
+      });
+    }
     // Safety timeout in case onend is delayed
     setTimeout(() => setIsSpeaking(false), 3000);
   };
@@ -68,156 +84,162 @@ export const DigitalDisplay: React.FC<DigitalDisplayProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+    <div className="w-full bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-4">
       {/* Top Banner: Period of Day */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 flex-wrap">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-2xl bg-amber-50 border border-amber-200">
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-amber-50 border-2 border-amber-200">
             {renderPeriodIcon()}
           </div>
           <div>
-            <div className="text-sm font-black text-slate-800 flex items-center gap-1.5">
-              <span>فترة اليوم:</span>
-              <span className="text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md font-bold">
+            <div className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2 flex-wrap">
+              <span>{lang === 'en' ? 'Time of Day:' : 'فَتْرَةُ الْيَوْمِ:'}</span>
+              <span className="text-amber-800 bg-amber-100 px-3 py-0.5 rounded-lg font-black border border-amber-300">
                 {periodInfo.name}
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium">{periodInfo.subText}</p>
+            <p className="text-sm text-slate-600 font-bold mt-0.5">{periodInfo.subText}</p>
           </div>
         </div>
 
         {/* AM / PM Toggle */}
         <button
           onClick={toggleAmPm}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black transition border border-slate-200"
-          title="تبديل الفترة بين صباحاً ومساءً"
+          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-black transition border-2 border-slate-200 cursor-pointer active:scale-95 shadow-2xs"
+          title={lang === 'en' ? 'Switch between AM and PM' : 'تَبْدِيلُ الْفَتْرَةِ بَيْنَ صَبَاحًا وَمَسَاءً'}
         >
-          <span>التبديل إلى:</span>
-          <span className="text-amber-700 font-extrabold">{digital.isPm ? 'صباحاً (ص)' : 'مساءً (م)'}</span>
+          <span>{lang === 'en' ? 'Switch to:' : 'التَّبْدِيلُ إِلَى:'}</span>
+          <span className="text-amber-700 font-black">
+            {lang === 'en' ? (digital.isPm ? 'AM (Morning)' : 'PM (Afternoon/Night)') : (digital.isPm ? 'صَبَاحًا (ص)' : 'مَسَاءً (م)')}
+          </span>
         </button>
       </div>
 
       {/* Big Digital Display Box */}
-      <div className="flex flex-col items-center justify-center py-4 px-4 bg-slate-900 text-white rounded-2xl shadow-inner border-2 border-slate-700 relative overflow-hidden">
-        <div className="absolute top-2 right-3 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold">
-          <span>الساعة الرقمية (السنة الثانية)</span>
+      <div className="flex flex-col items-center justify-center py-5 px-4 bg-slate-900 text-white rounded-3xl shadow-inner border-2 border-slate-700 relative overflow-hidden">
+        <div className={`absolute top-2.5 ${lang === 'en' ? 'left-4' : 'right-4'} flex items-center gap-1.5 text-xs md:text-sm text-slate-300 font-bold`}>
+          <span>{lang === 'en' ? 'DIGITAL CLOCK' : 'السَّاعَةُ الرَّقَمِيَّةُ'}</span>
         </div>
 
-        <div className="flex items-baseline justify-center gap-3 font-mono mt-2">
+        <div className="flex items-baseline justify-center gap-4 font-mono mt-3">
           {/* Main Digits */}
-          <div className="text-5xl md:text-6xl font-black tracking-wider text-amber-400 drop-shadow">
+          <div className="text-5xl md:text-7xl font-black tracking-wider text-amber-400 drop-shadow">
             {digital.time12}
           </div>
 
           {/* AM / PM indicator */}
-          <div className="text-sm md:text-base font-black px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 border border-slate-700">
-            {digital.isPm ? 'مساءً' : 'صباحاً'}
+          <div className="text-base md:text-lg font-black px-3 py-1.5 rounded-xl bg-slate-800 text-amber-300 border border-slate-700">
+            {lang === 'en' ? digital.period12En : (digital.isPm ? 'مَسَاءً' : 'صَبَاحًا')}
           </div>
         </div>
       </div>
 
-      {/* Arabic Spoken Time Box with Diacritics & Prominent TTS */}
-      <div className="bg-amber-50/80 border-2 border-amber-300/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-        <div className="flex-1 text-center sm:text-right">
-          <div className="text-xs text-amber-900 font-bold mb-1 flex items-center justify-center sm:justify-start gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>نطق وقراءة الساعة بالعربية الفصحى (مُشكَّلة):</span>
+      {/* Spoken Time Box with Prominent Slow-Paced TTS */}
+      <div className="bg-amber-50/90 border-2 border-amber-300 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className={`flex-1 text-center ${lang === 'en' ? 'sm:text-left' : 'sm:text-right'}`}>
+          <div className={`text-sm font-black text-amber-900 mb-1.5 flex items-center justify-center ${lang === 'en' ? 'sm:justify-start' : 'sm:justify-start'} gap-1.5`}>
+            <Sparkles className="w-4 h-4 text-amber-600" />
+            <span>{lang === 'en' ? 'HOW TO SAY AND READ THE TIME:' : 'نُطْقُ وَقِرَاءَةُ السَّاعَةِ بِالْعَرَبِيَّةِ الْفُصْحَى (مُشَكَّلَةٌ):'}</span>
           </div>
-          <div className="text-lg md:text-xl font-black text-slate-900 leading-snug">
+          <div className="text-xl md:text-3xl font-black text-slate-950 leading-relaxed font-['Baloo_Bhaijaan_2','Tajawal',sans-serif]">
             {spokenPhrase}
           </div>
         </div>
 
         <button
-          id="listen-arabic-time-btn"
+          id="listen-spoken-time-btn"
           onClick={handleSpeak}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm md:text-base font-black transition-all shadow-md active:scale-95 shrink-0 ${
+          className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl text-base md:text-lg font-black transition-all shadow-md active:scale-95 shrink-0 cursor-pointer ${
             isSpeaking
               ? 'bg-amber-500 text-white animate-pulse ring-4 ring-amber-300'
               : 'bg-amber-600 hover:bg-amber-700 text-white'
           }`}
-          title="استمع إلى نطق الساعة صوتياً"
+          title={lang === 'en' ? 'Listen to slow and clear English pronunciation' : 'اِسْتَمِعْ إِلَى نُطْقِ السَّاعَةِ صَوْتِيًّا'}
         >
-          <Volume2 className={`w-5 h-5 ${isSpeaking ? 'animate-bounce' : ''}`} />
-          <span>{isSpeaking ? 'يجري النطق...' : 'استمع للساعة 🔊'}</span>
+          <Volume2 className={`w-6 h-6 ${isSpeaking ? 'animate-bounce' : ''}`} />
+          <span>
+            {isSpeaking
+              ? (lang === 'en' ? 'Speaking...' : 'جَارٍ النُّطْقُ...')
+              : (lang === 'en' ? 'Listen 🔊' : 'اِسْتَمِعْ لِلسَّاعَةِ 🔊')}
+          </span>
         </button>
       </div>
 
       {/* Step Adjustment Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
         {/* Hours Stepper */}
-        <div className="flex items-center justify-between bg-red-50 p-2 rounded-2xl border border-red-200">
+        <div className="flex items-center justify-between bg-red-50 p-2.5 rounded-2xl border-2 border-red-200">
           <button
             onClick={() => adjustHours(-1)}
-            className="w-8 h-8 rounded-xl bg-red-100 hover:bg-red-200 active:scale-95 text-red-700 flex items-center justify-center font-black transition"
-            title="إنقاص ساعة"
+            className="w-10 h-10 rounded-xl bg-red-100 hover:bg-red-200 active:scale-95 text-red-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Decrease 1 hour' : 'إِنْقَاصُ سَاعَةٍ'}
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
-          <span className="text-xs font-bold text-red-900">ساعة (1±)</span>
+          <span className="text-sm font-black text-red-950">{lang === 'en' ? 'Hour (±1)' : 'سَاعَةٌ (1±)'}</span>
           <button
             onClick={() => adjustHours(1)}
-            className="w-8 h-8 rounded-xl bg-red-100 hover:bg-red-200 active:scale-95 text-red-700 flex items-center justify-center font-black transition"
-            title="زيادة ساعة"
+            className="w-10 h-10 rounded-xl bg-red-100 hover:bg-red-200 active:scale-95 text-red-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Increase 1 hour' : 'زِيَادَةُ سَاعَةٍ'}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
         </div>
 
         {/* 15 Minutes Stepper (Quarters) */}
-        <div className="flex items-center justify-between bg-blue-50 p-2 rounded-2xl border border-blue-200">
+        <div className="flex items-center justify-between bg-blue-50 p-2.5 rounded-2xl border-2 border-blue-200">
           <button
             onClick={() => adjustMinutes(-15)}
-            className="w-8 h-8 rounded-xl bg-blue-100 hover:bg-blue-200 active:scale-95 text-blue-700 flex items-center justify-center font-black transition"
-            title="إنقاص ربع ساعة (15 د)"
+            className="w-10 h-10 rounded-xl bg-blue-100 hover:bg-blue-200 active:scale-95 text-blue-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Decrease 15 minutes (Quarter)' : 'إِنْقَاصُ رُبْعِ سَاعَةٍ (15 د)'}
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
-          <span className="text-xs font-bold text-blue-900">ربع ساعة (15±)</span>
+          <span className="text-sm font-black text-blue-950">{lang === 'en' ? '15 Min (±15)' : 'رُبْعُ سَاعَةٍ (15±)'}</span>
           <button
             onClick={() => adjustMinutes(15)}
-            className="w-8 h-8 rounded-xl bg-blue-100 hover:bg-blue-200 active:scale-95 text-blue-700 flex items-center justify-center font-black transition"
-            title="زيادة ربع ساعة (15 د)"
+            className="w-10 h-10 rounded-xl bg-blue-100 hover:bg-blue-200 active:scale-95 text-blue-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Increase 15 minutes (Quarter)' : 'زِيَادَةُ رُبْعِ سَاعَةٍ (15 د)'}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
         </div>
 
         {/* 5 Minutes Stepper */}
-        <div className="flex items-center justify-between bg-emerald-50 p-2 rounded-2xl border border-emerald-200">
+        <div className="flex items-center justify-between bg-emerald-50 p-2.5 rounded-2xl border-2 border-emerald-200">
           <button
             onClick={() => adjustMinutes(-5)}
-            className="w-8 h-8 rounded-xl bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-emerald-700 flex items-center justify-center font-black transition"
-            title="إنقاص 5 دقائق"
+            className="w-10 h-10 rounded-xl bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-emerald-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Decrease 5 minutes' : 'إِنْقَاصُ 5 دَقَائِقَ'}
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
-          <span className="text-xs font-bold text-emerald-900">5 دقائق (5±)</span>
+          <span className="text-sm font-black text-emerald-950">{lang === 'en' ? '5 Min (±5)' : '5 دَقَائِقَ (5±)'}</span>
           <button
             onClick={() => adjustMinutes(5)}
-            className="w-8 h-8 rounded-xl bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-emerald-700 flex items-center justify-center font-black transition"
-            title="زيادة 5 دقائق"
+            className="w-10 h-10 rounded-xl bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-emerald-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Increase 5 minutes' : 'زِيَادَةُ 5 دَقَائِقَ'}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
         </div>
 
         {/* 1 Minute Stepper */}
-        <div className="flex items-center justify-between bg-purple-50 p-2 rounded-2xl border border-purple-200">
+        <div className="flex items-center justify-between bg-purple-50 p-2.5 rounded-2xl border-2 border-purple-200">
           <button
             onClick={() => adjustMinutes(-1)}
-            className="w-8 h-8 rounded-xl bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 flex items-center justify-center font-black transition"
-            title="إنقاص دقيقة"
+            className="w-10 h-10 rounded-xl bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Decrease 1 minute' : 'إِنْقَاصُ دَقِيقَةٍ'}
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
-          <span className="text-xs font-bold text-purple-900">دقيقة (1±)</span>
+          <span className="text-sm font-black text-purple-950">{lang === 'en' ? '1 Min (±1)' : 'دَقِيقَةٌ (1±)'}</span>
           <button
             onClick={() => adjustMinutes(1)}
-            className="w-8 h-8 rounded-xl bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 flex items-center justify-center font-black transition"
-            title="زيادة دقيقة"
+            className="w-10 h-10 rounded-xl bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 flex items-center justify-center font-black transition cursor-pointer"
+            title={lang === 'en' ? 'Increase 1 minute' : 'زِيَادَةُ دَقِيقَةٍ'}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
         </div>
       </div>
